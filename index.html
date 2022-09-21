@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfobject/2.2.8/pdfobject.js"></script>
+    <script type="text/javascript">
+      document.addEventListener("DOMContentLoaded", () => {
+        // Submit form
+        document.getElementById("form").addEventListener("submit", e => {
+          e.preventDefault();
+
+          // Get images
+          const filesField = document.querySelector("#files");
+          const files = filesField.files;
+
+          // Generate PDF
+          const doc = new jspdf.jsPDF();
+
+          // Add pages for each image
+          Array.from(files).forEach((file, i, arr) => {
+            doc.addImage(URL.createObjectURL(file), 0, 0, 210, 297)
+            URL.revokeObjectURL(file)
+            if (i < arr.length - 1) {
+              doc.addPage()
+            }
+          })
+
+          // Preview PDF
+          const url = doc.output("bloburl") //TODO: this doesn't always work in edge
+          console.log(url)
+          PDFObject.embed(url, "#pdfobject")
+
+          // Show Download button
+          document.getElementById("download").classList.remove("hidden");
+
+          // Download button
+          const downloadPDF = () => {
+            e.preventDefault();
+            
+            doc.save("a4.pdf")
+          }
+          document.getElementById("download").removeEventListener("click", downloadPDF) // TODO: this doesn't work and multiple events get fired
+          document.getElementById("download").addEventListener("click", downloadPDF)
+        })
+      })
+    </script>
+    <style>
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="form">
+        <form id="form" action="/">
+          <label for="pdf-images">Add your images:</label>
+          <br/>
+          <input type="file" id="files" name="files" multiple />
+          <br/>
+          <br/>          
+          <button>Update PDF</button>
+        </form>
+      </div>
+      <div class="preview">
+        <div id="pdfobject" style="height: 800px"></div>
+        <br/>
+        <button id="download" class="hidden">Download PDF</button>
+      </div>
+    </div>
+  </body>
+</html>
